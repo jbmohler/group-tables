@@ -2,6 +2,8 @@
 import sys
 import copy
 import random
+import itertools
+import string
 import argparse
 import sudoku2
 
@@ -22,6 +24,10 @@ if order <= 0:
     sys.exit(1)
 
 alphabet = args.alphabet
+
+if alphabet == "star-alpha":
+    alphabet = ("*" + string.ascii_lowercase)[:order]
+
 if not alphabet:
     alphabet = list(range(order))
 
@@ -59,13 +65,11 @@ def my_complete(_board):
 
     print(grp)
 
-    #for e in alphabet:
+    # for e in alphabet:
     #    print(grp.left_order(e), grp.right_order(e))
 
     print("-" * 40)
 
-
-import itertools
 
 def symmetric_permutations(elts):
     prior = set()
@@ -79,32 +83,49 @@ def symmetric_permutations(elts):
             yield perm_prune
 
 
-
-
 # stub out the grid matching the identity axiom
 s2 = sudoku2.group_identity(order, alphabet, identity)
 
 s2.config.completed = my_complete
 
-for inverses in symmetric_permutations(alphabet[1:]):
+# for inverses in symmetric_permutations(alphabet[1:]):
+
+parity = (order - 1) % 2
+
+for c2_idx in range((order - 1) // 2 + 1):
     s2.shuffle()
 
     inv = copy.deepcopy(s2)
 
     eligible = lambda cell: isinstance(cell, list) and identity in cell
-    # set the identities symmetrically accross the diagonal to satisfy
+
+    # By the inverse axiom inverse elements come in either mutually inverse
+    # pairs unless the element is its own inverse.  For visual effect, we group
+    # an even number of order 2 elements towards the origin and the rest of the
+    # elements in order so that the identities in group operation table form a
+    # diagonal line perpendicular to the main diagonal.
+
+    # Note that the identities symmetrically accross the diagonal to satisfy
     # the inverse axiom
 
+    count2 = 2 * c2_idx
+
     try:
-        for _index, elt in enumerate(inverses):
-            if elt != None:
-                index = _index + 1
-                inv_index = alphabet.index(elt)
-                inv.fix_point((index, inv_index), identity)
-                inv.fix_point((inv_index, index), identity)
+        # for _index, elt in enumerate(inverses):
+        #    if elt != None:
+        #        index = _index + 1
+        #        inv_index = alphabet.index(elt)
+        #        inv.fix_point((index, inv_index), identity)
+        #        inv.fix_point((inv_index, index), identity)
+
+        for index in range(1, 2 * c2_idx + 1):
+            inv.fix_point((index, index), identity)
+        for index in range(1 + 2 * c2_idx, order):
+            inv.fix_point((index, order - index), identity)
     except sudoku2.Impossible:
         print("failed on impossible inverse choices")
         continue
+
 
     # complete matching the closure axiom
     try:
