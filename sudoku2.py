@@ -11,6 +11,8 @@ class GroupConfig:
         self._size = size
         self.rSize = list(range(self.size()))
 
+        self.completed = None
+
         self.permbands = []
         for i in self.rSize:
             self.permbands.append(tuple(self.index((i, y)) for y in self.rSize))
@@ -103,7 +105,7 @@ class GroupConfig:
     def solve(self, board):
         idx = self.good_index(board)
         if idx is None:
-            return board
+            self.completed(board)
         elif len(board[idx]) == 0:
             raise Impossible
         else:
@@ -115,10 +117,11 @@ class GroupConfig:
                     # sb=GroupBoard(size=self.size())
                     # sb.board = next_board
                     # print sb
-                    return self.solve(next_board)
+                    self.solve(next_board)
+                    #self.completed()
                 except Impossible:
                     continue
-            raise Impossible
+            # raise Impossible
 
 
 class GroupBoard:
