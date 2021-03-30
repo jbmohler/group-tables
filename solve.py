@@ -43,12 +43,13 @@ def my_complete(_board):
     grp = sudoku2.GroupBoard(size=order, alphabet=alphabet)
     grp.board = _board
 
-    # monte carlo checks of the associative axiom
-    # (no real analysis has been made about how many checks are required)
-    for _ in range(order):
-        a, b, c = random.choices(alphabet, k=3)
+    op = grp.group_op
+    success = 0
 
-        op = grp.group_op
+    # exhaustive check of the associative axiom, note that we need not check
+    # the identity element because it acts as both a left and right identity so
+    # that any which way it is in an associative equation it does nothing.
+    for a, b, c in itertools.product(alphabet[1:], repeat=3):
 
         r1 = op(a, op(b, c))
         r2 = op(op(a, b), c)
@@ -56,19 +57,23 @@ def my_complete(_board):
         if r1 != r2:
             fails = True
             break
+        else:
+            success += 1
     else:
         fails = False
 
     if fails:
-        print("solution failed associative axiom")
+        # print(f"tried {success} associative equations before a failure")
         return
+    else:
+        print(f"approved {success} associative equations")
 
     print(grp)
 
     # for e in alphabet:
     #    print(grp.left_order(e), grp.right_order(e))
 
-    print("-" * 40)
+    print("-" * 40, flush=True)
 
 
 def symmetric_permutations(elts):
@@ -121,11 +126,11 @@ for c2_idx in range((order - 1) // 2 + 1):
         for index in range(1, 2 * c2_idx + 1):
             inv.fix_point((index, index), identity)
         for index in range(1 + 2 * c2_idx, order):
-            inv.fix_point((index, order - index), identity)
+            inv_index = order - (index - 2 * c2_idx)
+            inv.fix_point((index, inv_index), identity)
     except sudoku2.Impossible:
         print("failed on impossible inverse choices")
         continue
-
 
     # complete matching the closure axiom
     try:
@@ -136,21 +141,30 @@ for c2_idx in range((order - 1) // 2 + 1):
 
     continue
 
+    op = grp.group_op
+    success = 0
+
     # monte carlo checks of the associative axiom
     # (no real analysis has been made about how many checks are required)
-    for _ in range(order):
-        a, b, c = random.choices(alphabet, k=3)
+    # for _ in range(order):
+    #     a, b, c = random.choices(alphabet, k=3)
 
-        op = grp.group_op
-
+    # exhaustive check of the associative axiom, note that we need not check
+    # the identity element because it acts as both a left and right identity so
+    # that any which way it is in an associative equation it does nothing.
+    for a, b, c in itertools.product(alphabet[1:], repeat=3):
         r1 = op(a, op(b, c))
         r2 = op(op(a, b), c)
 
         if r1 != r2:
             fails = True
             break
+        else:
+            success += 1
     else:
         fails = False
+
+    print(f"{success} associative efforts")
 
     if fails:
         print("solution failed associative axiom")
